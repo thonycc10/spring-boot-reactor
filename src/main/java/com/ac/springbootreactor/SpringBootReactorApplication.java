@@ -27,7 +27,15 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        userCommentsZipWith2();
+        operatorRange();
+    }
+
+    private void operatorRange() {
+        Flux<Integer> ranges = Flux.range(0,4);
+        Flux.just(1,2,3,4)
+                .map(n -> n*2)
+                .zipWith(ranges, (map, range) -> String.format("Primer Flux: %d, Segundo Flux: %d", map, range))
+                .subscribe(texto -> log.info(texto));
     }
 
     //    Combina dos flujos
