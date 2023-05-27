@@ -1,6 +1,8 @@
 package com.ac.springbootreactor;
 
+import models.Comments;
 import models.User;
+import models.UserComments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -10,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.swing.undo.UndoableEditSupport;
+import javax.xml.stream.events.Comment;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +27,23 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        convertObservableFluxToMono();
+        userCommentsFlatMap();
+    }
+
+    private void userCommentsFlatMap() {
+        Mono<User> userMono = Mono.fromCallable(() -> new User("Thony", "Carrasco"));
+
+        Mono<Comments> commentMono = Mono.fromCallable(() -> {
+            Comments comments = new Comments();
+            comments.addComment("Hola thony");
+            comments.addComment("como estas thony");
+            comments.addComment("que te cuentas thony");
+            comments.addComment("vamos papi tu puedes!");
+            return comments;
+        });
+
+        userMono.flatMap(user -> commentMono.map(commet -> new UserComments(user, commet)))
+                .subscribe(userComment -> log.info(userComment.toString()));
     }
 
     private void convertObservableFluxToMono() {
