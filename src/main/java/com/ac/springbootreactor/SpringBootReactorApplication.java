@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.swing.undo.UndoableEditSupport;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,27 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        exampleFlatMap();
+        exampleToString();
+    }
+
+    private void exampleToString() {
+        List<User> userList = new ArrayList<>();
+        userList.add(new User("Andres","Ape1"));
+        userList.add(new User("Pepe","Ape3"));
+        userList.add(new User("Juan","Ape2"));
+        userList.add(new User("Diego","Ape1"));
+
+        Flux.fromIterable(userList)
+                .map(user ->  user.getName().toUpperCase().concat(" ").concat(user.getLastName().toUpperCase()))
+                .flatMap(name -> {
+                    if (name.contains("Ape1".toUpperCase())) {
+                        return Mono.just(name);
+                    } else {
+                        return Mono.empty();
+                    }
+                })
+                .map(String::toLowerCase)
+                .subscribe(user -> log.info(user.toString()));
     }
 
     private void exampleFlatMap() {
