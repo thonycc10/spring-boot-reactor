@@ -20,8 +20,9 @@ public class SpringBootReactorApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        Flux<User> nombres = Flux.just("Andres Ape", "Pedro Ape1", "Maria Ape1", "Diego Ape3")
-                .map(nombre -> {
+        Flux<String> nombres = Flux.just("Andres Ape", "Pedro Ape1", "Maria Ape1", "Diego Ape3");
+
+        Flux<User> usuarios = nombres.map(nombre -> {
                     return new User(nombre.split(" ")[0].toUpperCase(), nombre.split(" ")[1].toUpperCase());
                 })
                 .filter(user -> user.getLastName().toLowerCase().equals("ape1"))
@@ -39,7 +40,7 @@ public class SpringBootReactorApplication implements CommandLineRunner {
         // explesion lambda
 //		Flux<String> nombres = Flux.just("Andres", "Pedro", "Juan", "Diego").doOnNext(System.out::println);
 
-        nombres.subscribe(user -> log.info(user.getName()),
+        usuarios.subscribe(user -> log.info(user.toString()),
                 error -> log.error(error.getMessage()),
                 new Runnable() {
                     @Override
