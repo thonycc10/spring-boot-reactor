@@ -10,35 +10,42 @@ import reactor.core.publisher.Flux;
 @SpringBootApplication
 public class SpringBootReactorApplication implements CommandLineRunner {
 
-	private static final Logger log = LoggerFactory.getLogger(SpringBootReactorApplication.class);
+    private static final Logger log = LoggerFactory.getLogger(SpringBootReactorApplication.class);
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringBootReactorApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SpringBootReactorApplication.class, args);
+    }
 
-	@Override
-	public void run(String... args) {
+    @Override
+    public void run(String... args) {
 
-		Flux<String> nombres = Flux.just("Andres", "Pedro", "Maria", "Diego").doOnNext(nombre -> {
-			if (nombre.isEmpty()) {
-				throw new RuntimeException("Se encontro un nombre vacio");
-			}
-			System.out.println(nombre);
-		});
+        Flux<String> nombres = Flux.just("Andres", "Pedro", "Maria", "Diego")
+                .map(nombre -> {
+                    return nombre.toUpperCase();
+                })
+                .doOnNext(nombre -> {
+                    if (nombre.isEmpty()) {
+                        throw new RuntimeException("Se encontro un nombre vacio");
+                    }
+                    System.out.println(nombre);
+                })
+                .map(nombre -> {
+                    return nombre.toLowerCase();
+                });
 
-		// explesion lambda
+        // explesion lambda
 //		Flux<String> nombres = Flux.just("Andres", "Pedro", "Juan", "Diego").doOnNext(System.out::println);
 
-		nombres.subscribe(e -> log.info(e),
-				error -> log.error(error.getMessage()),
-				new Runnable() {
-					@Override
-					public void run() {
-						log.info("Ha finalizado la ejecución del observable con exito");
-					}
-				});
+        nombres.subscribe(e -> log.info(e),
+                error -> log.error(error.getMessage()),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        log.info("Ha finalizado la ejecución del observable con exito");
+                    }
+                });
 
 //		explesion lambda
 //		nombres.subscribe(log::info);
-	}
+    }
 }
