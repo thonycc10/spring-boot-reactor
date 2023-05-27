@@ -3,6 +3,8 @@ package com.ac.springbootreactor;
 import models.Comments;
 import models.User;
 import models.UserComments;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -31,7 +33,45 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws InterruptedException {
-        intervalCreate();
+        backPressure();
+    }
+
+    private void backPressure() {
+        Flux.range(1, 10)
+                .log()
+//                .limitRate(5) ejemplo reducido de backpressure
+                .subscribe(new Subscriber<Integer>() { // manera mas personable de controlar las cargas
+
+                    private Subscription s;
+                    private Integer top = 5;
+                    private Integer consumed = 0;
+
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        this.s = s;
+                        s.request(top);
+                    }
+
+                    @Override
+                    public void onNext(Integer t) {
+                        log.info(t.toString());
+                        consumed++;
+                        if (consumed.equals(top)) {
+                            consumed = 0;
+                            s.request(top);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void intervalCreate() {
@@ -56,8 +96,8 @@ public class SpringBootReactorApplication implements CommandLineRunner {
                     }, 1000, 1000);
                 })
                 .subscribe(next -> log.info(next.toString()),
-                           error -> log.error(error.getMessage()),
-                           () -> log.info("Complete"));
+                        error -> log.error(error.getMessage()),
+                        () -> log.info("Complete"));
     }
 
     private void intervalInfinite() throws InterruptedException {
