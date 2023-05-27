@@ -16,6 +16,8 @@ import javax.xml.stream.events.Comment;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 @SpringBootApplication
@@ -29,7 +31,33 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws InterruptedException {
-        intervalInfinite();
+        intervalCreate();
+    }
+
+    private void intervalCreate() {
+        Flux.create(emitter -> {
+                    Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        private Integer count = 0;
+
+                        @Override
+                        public void run() {
+                            emitter.next(++count);
+                            if (count == 10) {
+                                timer.cancel();
+                                emitter.complete();
+                            }
+
+                            if (count == 5) {
+                                timer.cancel();
+                                emitter.error(new InterruptedException("Error, se ha detenido el flux en 5!"));
+                            }
+                        }
+                    }, 1000, 1000);
+                })
+                .subscribe(next -> log.info(next.toString()),
+                           error -> log.error(error.getMessage()),
+                           () -> log.info("Complete"));
     }
 
     private void intervalInfinite() throws InterruptedException {
@@ -69,9 +97,9 @@ public class SpringBootReactorApplication implements CommandLineRunner {
     }
 
     private void operatorRange() {
-        Flux<Integer> ranges = Flux.range(0,4);
-        Flux.just(1,2,3,4)
-                .map(n -> n*2)
+        Flux<Integer> ranges = Flux.range(0, 4);
+        Flux.just(1, 2, 3, 4)
+                .map(n -> n * 2)
                 .zipWith(ranges, (map, range) -> String.format("Primer Flux: %d, Segundo Flux: %d", map, range))
                 .subscribe(texto -> log.info(texto));
     }
@@ -92,9 +120,9 @@ public class SpringBootReactorApplication implements CommandLineRunner {
         Mono<UserComments> userCommentsMono = userMono
                 .zipWith(commentMono)
                 .map(tuple -> {
-                   User u = tuple.getT1();
-                   Comments c = tuple.getT2();
-                   return new UserComments(u, c);
+                    User u = tuple.getT1();
+                    Comments c = tuple.getT2();
+                    return new UserComments(u, c);
                 });
 
         userCommentsMono.subscribe(userComment -> log.info(userComment.toString()));
