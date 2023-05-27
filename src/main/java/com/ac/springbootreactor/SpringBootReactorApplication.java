@@ -16,6 +16,7 @@ import javax.xml.stream.events.Comment;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 @SpringBootApplication
 public class SpringBootReactorApplication implements CommandLineRunner {
@@ -27,8 +28,27 @@ public class SpringBootReactorApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
-        exampleDelayInterval();
+    public void run(String... args) throws InterruptedException {
+        intervalInfinite();
+    }
+
+    private void intervalInfinite() throws InterruptedException {
+        // count
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Flux.interval(Duration.ofSeconds(1))
+                .doOnTerminate(latch::countDown)
+                .flatMap(number -> {
+                    if (number >= 5) {
+                        return Flux.error(new InterruptedException("Solo hasta 5!"));
+                    }
+                    return Flux.just(number);
+                })
+                .retry(1) // el retry es usado para reitentar el numero de veces si salta un problema.
+                .map(number -> String.format("Soy %d", number))
+                .subscribe(log::info, e -> log.error(e.getMessage()));
+
+        latch.await();
     }
 
     private void exampleDelayInterval() {
