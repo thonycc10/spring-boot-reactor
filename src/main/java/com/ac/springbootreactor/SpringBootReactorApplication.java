@@ -20,10 +20,11 @@ public class SpringBootReactorApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        Flux<User> nombres = Flux.just("Andres", "Pedro", "Maria", "Diego")
+        Flux<User> nombres = Flux.just("Andres Ape", "Pedro Ape1", "Maria Ape1", "Diego Ape3")
                 .map(nombre -> {
-                    return new User(nombre.toUpperCase(), null);
+                    return new User(nombre.split(" ")[0].toUpperCase(), nombre.split(" ")[1].toUpperCase());
                 })
+                .filter(user -> user.getLastName().toLowerCase().equals("ape1"))
                 .doOnNext(user -> {
                     if (user == null) {
                         throw new RuntimeException("Se encontro un nombre vacio");
