@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import javax.swing.undo.UndoableEditSupport;
 import javax.xml.stream.events.Comment;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,24 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        operatorRange();
+        exampleDelayInterval();
+    }
+
+    private void exampleDelayInterval() {
+        Flux<Integer> range = Flux.range(1, 12)
+                .delayElements(Duration.ofSeconds(1))
+                .doOnNext(nummber -> log.info(nummber.toString()));
+
+        range.blockLast();
+    }
+
+    private void exampleInterval() {
+        Flux<Integer> range = Flux.range(1, 12);
+        Flux<Long> delay = Flux.interval(Duration.ofSeconds(1));
+
+        range.zipWith(delay, (ran, del) -> ran)
+                .doOnNext(number -> log.info(number.toString()))
+                .blockLast(); // bloquea o detiene el proceso first o last. No es recomendable usar por cuello de botella
     }
 
     private void operatorRange() {
