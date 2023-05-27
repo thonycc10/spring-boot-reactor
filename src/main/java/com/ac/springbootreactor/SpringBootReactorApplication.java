@@ -1,5 +1,6 @@
 package com.ac.springbootreactor;
 
+import models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -19,24 +20,25 @@ public class SpringBootReactorApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        Flux<String> nombres = Flux.just("Andres", "Pedro", "Maria", "Diego")
+        Flux<User> nombres = Flux.just("Andres", "Pedro", "Maria", "Diego")
                 .map(nombre -> {
-                    return nombre.toUpperCase();
+                    return new User(nombre.toUpperCase(), null);
                 })
-                .doOnNext(nombre -> {
-                    if (nombre.isEmpty()) {
+                .doOnNext(user -> {
+                    if (user == null) {
                         throw new RuntimeException("Se encontro un nombre vacio");
                     }
-                    System.out.println(nombre);
+                    System.out.println(user.getName());
                 })
-                .map(nombre -> {
-                    return nombre.toLowerCase();
+                .map(user -> {
+                    user.setName(user.getName().toLowerCase());
+                    return user;
                 });
 
         // explesion lambda
 //		Flux<String> nombres = Flux.just("Andres", "Pedro", "Juan", "Diego").doOnNext(System.out::println);
 
-        nombres.subscribe(e -> log.info(e),
+        nombres.subscribe(user -> log.info(user.getName()),
                 error -> log.error(error.getMessage()),
                 new Runnable() {
                     @Override
