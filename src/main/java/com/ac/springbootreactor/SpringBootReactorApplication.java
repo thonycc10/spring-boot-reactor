@@ -27,7 +27,48 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        userCommentsFlatMap();
+        userCommentsZipWith2();
+    }
+
+    //    Combina dos flujos
+    private void userCommentsZipWith2() {
+        Mono<User> userMono = Mono.fromCallable(() -> new User("Thony", "Carrasco"));
+
+        Mono<Comments> commentMono = Mono.fromCallable(() -> {
+            Comments comments = new Comments();
+            comments.addComment("Hola thony");
+            comments.addComment("como estas thony");
+            comments.addComment("que te cuentas thony");
+            comments.addComment("vamos papi tu puedes!");
+            return comments;
+        });
+
+        Mono<UserComments> userCommentsMono = userMono
+                .zipWith(commentMono)
+                .map(tuple -> {
+                   User u = tuple.getT1();
+                   Comments c = tuple.getT2();
+                   return new UserComments(u, c);
+                });
+
+        userCommentsMono.subscribe(userComment -> log.info(userComment.toString()));
+    }
+
+    private void userCommentsZipWith() {
+        Mono<User> userMono = Mono.fromCallable(() -> new User("Thony", "Carrasco"));
+
+        Mono<Comments> commentMono = Mono.fromCallable(() -> {
+            Comments comments = new Comments();
+            comments.addComment("Hola thony");
+            comments.addComment("como estas thony");
+            comments.addComment("que te cuentas thony");
+            comments.addComment("vamos papi tu puedes!");
+            return comments;
+        });
+
+        Mono<UserComments> userCommentsMono = userMono.zipWith(commentMono, (user, commets) -> new UserComments(user, commets));
+
+        userCommentsMono.subscribe(userComment -> log.info(userComment.toString()));
     }
 
     private void userCommentsFlatMap() {
